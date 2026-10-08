@@ -19,6 +19,8 @@ export default defineConfig({
   reporter: [
     ['list'],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
+    // En GitHub Actions cada fallo aparece como anotación en el resumen de la ejecución
+    ...(process.env.CI ? [['github'] as const] : []),
   ],
 
   use: {
