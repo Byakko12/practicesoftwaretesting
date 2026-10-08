@@ -1,0 +1,60 @@
+# Ejecuta la suite en Chrome y Firefox y publica el reporte HTML en GitHub Pages:
+# https://byakko12.github.io/practicesoftwaretesting/
+name: Playwright Tests
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # botón "Run workflow" en la pestaña Actions
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      EVIDENCE: '1' # video y screenshot de todos los tests en el reporte
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Google Chrome ya viene instalado en ubuntu-latest; solo falta Firefox
+      - name: Instalar navegadores
+        run: npx playwright install --with-deps firefox
+
+      # En Pages el reporte se sirve por HTTPS, así que los traces sí se pueden abrir
+      - name: Ejecutar tests
+        run: npx playwright test --trace on
+
+      - name: Subir reporte HTML
+        if: ${{ !cancelled() }} # también si fallan tests: el fallo es evidencia
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: playwright-report
+
+  deploy:
+    needs: test
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

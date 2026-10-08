@@ -13,7 +13,7 @@ creada para practicar testing.
 | 1 validación de datos         | `tests/validations/data-validation.spec.ts` (D1)                    |
 | 1 validación de mensajes      | `tests/validations/messages.spec.ts` (M1)                           |
 | Screenshots ante error        | `screenshot: 'only-on-failure'` en `playwright.config.ts`           |
-| HTML Report                   | Reporter `html` → `playwright-report/`                              |
+| HTML Report                   | Reporter `html` → `playwright-report/`; publicado en GitHub Pages   |
 | Trace                         | `trace: 'retain-on-failure'`; `npm run test:trace` lo graba siempre |
 | Ejecución Chrome / Firefox    | Proyectos `chrome` y `firefox`                                      |
 
@@ -98,6 +98,13 @@ Sin esperas fijas: auto-waiting de las acciones, assertions como esperas explíc
 
 `npm run report` abre el reporte HTML con pasos, screenshots, video y trace de los tests fallidos.
 Las evidencias quedan en `test-results/`.
+
+### Reporte publicado (CI)
+
+Cada push a `main` ejecuta la suite en GitHub Actions (Chrome + Firefox) y publica el reporte HTML,
+con video, screenshots y trace de cada test, en:
+
+**https://byakko12.github.io/practicesoftwaretesting/**
 
 ## Debugging
 
