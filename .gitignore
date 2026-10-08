@@ -1,0 +1,70 @@
+# ── Dependencias ─────────────────────────────────────────
+node_modules/
+.pnpm-store/
+.yarn/
+.npm/
+
+# ── Variables de entorno / secretos ──────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Sesiones / estado de autenticación de Playwright ─────
+.auth/
+playwright/.auth/
+storageState*.json
+
+# ── Resultados y reportes de Playwright ──────────────────
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+allure-results/
+allure-report/
+*.trace.zip
+
+# ── Build / TypeScript ───────────────────────────────────
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# ── Logs ─────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Cobertura ────────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ── Cachés y temporales ──────────────────────────────────
+.cache/
+.eslintcache
+.temp/
+.tmp/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~
+
+# ── Editores / IDE ───────────────────────────────────────
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.iml
+
+# ── Archivos del sistema operativo ───────────────────────
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/

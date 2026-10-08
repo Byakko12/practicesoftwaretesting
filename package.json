@@ -1,0 +1,34 @@
+{
+  "name": "practice-software-testing-playwright",
+  "version": "1.0.0",
+  "description": "Automatización QA de Practice Software Testing (Toolshop) con Playwright: login, búsqueda, compra, validación y logout",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:chrome": "playwright test --project=chrome",
+    "test:firefox": "playwright test --project=firefox",
+    "test:headed": "playwright test --project=chrome --headed --workers=1",
+    "test:debug": "playwright test --project=chrome --debug",
+    "test:ui": "playwright test --ui",
+    "test:trace": "playwright test --trace on",
+    "report": "playwright show-report playwright-report",
+    "typecheck": "tsc --noEmit",
+    "install:browsers": "playwright install chrome firefox"
+  },
+  "keywords": [
+    "playwright",
+    "qa",
+    "e2e"
+  ],
+  "license": "ISC",
+  "devDependencies": {
+    "@faker-js/faker": "^10.6.0",
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^26.6.4",
+    "dotenv": "^18.0.6",
+    "typescript": "^7.0.2"
+  }
+}
