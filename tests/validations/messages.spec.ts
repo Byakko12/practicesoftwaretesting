@@ -4,7 +4,7 @@ import { MESSAGES, SEARCH_TERM } from '../../src/data/test-data';
 /**
  * VALIDACIÓN DE MENSAJES
  */
-test('M1 - mensajes de búsqueda y de producto agregado al carrito', { tag: '@messages' }, async ({
+test('M1 - mensajes de búsqueda y de producto agregado al carrito', { tag: ['@regression', '@messages'] }, async ({
   catalogPage,
   productPage,
 }) => {

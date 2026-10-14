@@ -4,13 +4,13 @@ import { buildInvalidCredentials, MESSAGES } from '../../src/data/test-data';
 /**
  * CASOS NEGATIVOS de autenticación
  */
-test.describe('Login - casos negativos', { tag: '@negative' }, () => {
+test.describe('Login - casos negativos', { tag: ['@regression', '@negative'] }, () => {
   // Hook: todos los tests de este bloque arrancan en /auth/login
   test.beforeEach(async ({ loginPage }) => {
     await loginPage.open();
   });
 
-  test('N1 - credenciales inválidas muestran error', async ({ page, loginPage }) => {
+  test('N1 - credenciales inválidas muestran error', { tag: '@critical' }, async ({ page, loginPage }) => {
     const invalid = buildInvalidCredentials();
 
     await loginPage.login(invalid.email, invalid.password);
