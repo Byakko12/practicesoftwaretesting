@@ -5,7 +5,7 @@ import { parseMoney } from '../../src/utils/money';
 /**
  * VALIDACIÓN DE DATOS
  */
-test('D1 - el carrito calcula subtotal y total según la cantidad', { tag: '@data' }, async ({
+test('D1 - el carrito calcula subtotal y total según la cantidad', { tag: ['@regression', '@critical', '@data'] }, async ({
   catalogPage,
   productPage,
   checkoutPage,

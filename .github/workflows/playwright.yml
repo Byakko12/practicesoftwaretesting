@@ -1,27 +1,63 @@
-# Ejecuta la suite en Chrome y Firefox y publica el reporte HTML en GitHub Pages:
-# https://byakko12.github.io/practicesoftwaretesting/
-name: Playwright Tests
+# Pipeline de QA con Playwright.
+#  - Pull Request a main  → @smoke + @critical (gate del PR)
+#  - Push a main          → @regression completa + reporte en GitHub Pages
+#  - Programado (L-V)     → @regression completa + reporte en GitHub Pages
+#  - Manual (Run workflow)→ eliges ambiente, suite y navegador
+# Reporte publicado: https://byakko12.github.io/practicesoftwaretesting/
+name: QA Pipeline
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
-  workflow_dispatch: # botón "Run workflow" en la pestaña Actions
+  schedule:
+    - cron: '0 11 * * 1-5' # 06:00 hora Colombia (UTC-5), lunes a viernes
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Ambiente
+        type: choice
+        options: [qa, with-bugs]
+        default: qa
+      suite:
+        description: Suite (tag)
+        type: choice
+        options: [smoke, critical, regression]
+        default: regression
+      browser:
+        description: Navegador
+        type: choice
+        options: [all, chrome, firefox]
+        default: all
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
+# Un PR nuevo cancela la ejecución anterior del mismo PR; en main no se cancela nada
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: qa-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
+    name: Playwright · ${{ inputs.environment || 'qa' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Environment de GitHub: de aquí salen las vars y secrets de cada ambiente
+    environment: ${{ inputs.environment || 'qa' }}
     env:
-      EVIDENCE: '1' # video y screenshot de todos los tests en el reporte
+      TEST_ENV: ${{ inputs.environment || 'qa' }}
+      # Variables (Settings → Environments → <ambiente> → Variables). Opcionales:
+      # si no existen se usan las de environments/<ambiente>.env y los valores por defecto
+      BASE_URL: ${{ vars.BASE_URL }}
+      API_URL: ${{ vars.API_URL }}
+      RETRIES: ${{ vars.RETRIES }}
+      WORKERS: ${{ vars.WORKERS }}
+      # Secretos (Settings → Environments → <ambiente> → Secrets)
+      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+      EVIDENCE: '1' # trace, video y screenshot de todos los tests en el reporte
     steps:
       - uses: actions/checkout@v7
 
@@ -33,24 +69,60 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      - name: Validar tipos
+        run: npm run typecheck
+
+      - name: Definir suite
+        id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          SUITE: ${{ inputs.suite }}
+          BROWSER: ${{ inputs.browser || 'all' }}
+        run: |
+          case "$EVENT" in
+            pull_request)      grep='@smoke|@critical' ;;
+            workflow_dispatch) grep="@$SUITE" ;;
+            *)                 grep='@regression' ;;
+          esac
+          projects=''
+          if [ "$BROWSER" != all ]; then projects="--project=$BROWSER"; fi
+          echo "grep=$grep" >> "$GITHUB_OUTPUT"
+          echo "projects=$projects" >> "$GITHUB_OUTPUT"
+          echo "### Ambiente \`$TEST_ENV\` · Suite \`$grep\` · Navegador \`$BROWSER\`" >> "$GITHUB_STEP_SUMMARY"
+
       # Google Chrome ya viene instalado en ubuntu-latest; solo falta Firefox
       - name: Instalar navegadores
         run: npx playwright install --with-deps firefox
 
-      # En Pages el reporte se sirve por HTTPS, así que los traces sí se pueden abrir
       - name: Ejecutar tests
-        run: npx playwright test --trace on
+        run: npx playwright test --grep "${{ steps.plan.outputs.grep }}" ${{ steps.plan.outputs.projects }}
 
-      - name: Subir reporte HTML
+      # Siempre disponible para descargar desde la ejecución (también en PRs)
+      - name: Subir reporte HTML (artefacto)
         if: ${{ !cancelled() }} # también si fallan tests: el fallo es evidencia
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-${{ github.run_number }}
+          path: playwright-report
+          retention-days: 14
+
+      - name: Preparar reporte para GitHub Pages
+        if: ${{ !cancelled() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
         uses: actions/upload-pages-artifact@v5
         with:
           path: playwright-report
 
   deploy:
     needs: test
-    if: ${{ !cancelled() }}
+    # Solo desde main: los PRs no sobrescriben el reporte publicado
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

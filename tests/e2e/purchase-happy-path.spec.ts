@@ -5,7 +5,7 @@ import { MESSAGES, PAYMENT_METHOD, SEARCH_TERM } from '../../src/data/test-data'
  * HAPPY PATH
  * Login → búsqueda → acción principal (compra) → validación → logout
  */
-test('Happy Path - usuario compra un producto y cierra sesión', { tag: '@smoke' }, async ({
+test('Happy Path - usuario compra un producto y cierra sesión', { tag: ['@smoke', '@critical', '@regression'] }, async ({
   page,
   testUser,
   loginPage,
